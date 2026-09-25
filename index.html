@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Assistente de Tarefas</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f5f7fb;color:#182033}.top{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;padding:28px 20px}.top>div{max-width:1100px;margin:auto}.top h1{margin:0 0 7px;font-size:28px}.top p{margin:0;opacity:.85}.wrap{max-width:1100px;margin:25px auto;padding:0 18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,.panel{background:#fff;border:1px solid #e7eaf1;border-radius:18px;box-shadow:0 8px 25px rgba(30,41,59,.06)}.card{padding:20px}.num{font-size:30px;font-weight:800;margin-top:8px}.grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px;margin-top:18px}.panel{padding:20px}.panel h2{font-size:18px;margin:0 0 15px}.task{padding:15px;border:1px solid #e6e8ef;border-radius:13px;margin:10px 0;cursor:pointer}.task:hover{border-color:#7c3aed;background:#faf9ff}.badge{display:inline-block;font-size:12px;padding:5px 8px;border-radius:20px;background:#eeeafe;color:#5b21b6}.expired{background:#feecec;color:#b42318}.question{width:100%;min-height:160px;border:1px solid #dfe3eb;border-radius:12px;padding:13px;font:inherit;resize:vertical}.btn{border:0;background:#5b4ae6;color:white;padding:12px 15px;border-radius:11px;font-weight:700;cursor:pointer;margin-top:10px}.btn.secondary{background:#eef0f7;color:#31384b;margin-left:6px}.answer{margin-top:14px;padding:15px;border-radius:12px;background:#f7f7fb;color:#4b5563;min-height:90px}.note{font-size:13px;color:#6b7280;line-height:1.5}.footer{text-align:center;color:#8a91a3;font-size:12px;padding:30px}@media(max-width:760px){.stats,.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div><h1>Assistente de Tarefas</h1><p>Organize suas atividades e prepare respostas para revisão.</p></div></header>
+<main class="wrap">
+<section class="stats"><div class="card"><span>Pendentes</span><div class="num" id="pendingCount">0</div></div><div class="card"><span>Expiradas</span><div class="num" id="expiredCount">0</div></div><div class="card"><span>Revisadas</span><div class="num" id="reviewedCount">0</div></div></section>
+<section class="grid">
+<div class="panel"><h2>Minhas tarefas</h2><div id="tasks"></div><button class="btn" onclick="addTask()">+ Adicionar tarefa</button><p class="note">Nesta primeira versão, as atividades ficam salvas somente neste navegador.</p></div>
+<div class="panel"><h2>Trabalhar atividade</h2><input id="title" placeholder="Nome da atividade" style="width:100%;padding:12px;border:1px solid #dfe3eb;border-radius:11px;margin-bottom:10px"><textarea class="question" id="question" placeholder="Cole aqui a questão ou o enunciado..."></textarea><div><button class="btn" onclick="prepare()">Preparar para IA</button><button class="btn secondary" onclick="reviewed()">Marcar revisada</button></div><div class="answer" id="answer">A resposta sugerida e a explicação aparecerão aqui quando a integração com IA estiver configurada.</div><p class="note">Revise o conteúdo antes de utilizá-lo em uma atividade escolar.</p></div>
+</section>
+</main><div class="footer">Assistente de Tarefas • versão inicial</div>
+<script>
+let data=JSON.parse(localStorage.getItem('assist_tasks')||'[]');let active=-1;
+function save(){localStorage.setItem('assist_tasks',JSON.stringify(data));render()}
+function render(){let box=document.getElementById('tasks');box.innerHTML='';data.forEach((t,i)=>{let d=document.createElement('div');d.className='task';d.onclick=()=>openTask(i);d.innerHTML='<b>'+escapeHtml(t.title||'Atividade sem nome')+'</b><br><span class="badge '+(t.expired?'expired':'')+'">'+(t.reviewed?'Revisada':t.expired?'Expirada':'Pendente')+'</span>';box.appendChild(d)});document.getElementById('pendingCount').textContent=data.filter(x=>!x.expired&&!x.reviewed).length;document.getElementById('expiredCount').textContent=data.filter(x=>x.expired&&!x.reviewed).length;document.getElementById('reviewedCount').textContent=data.filter(x=>x.reviewed).length}
+function addTask(){let title=prompt('Nome da tarefa:');if(!title)return;let expired=confirm('Esta tarefa está expirada?');data.push({title,expired,reviewed:false,question:''});save();openTask(data.length-1)}
+function openTask(i){active=i;title.value=data[i].title;question.value=data[i].question||'';answer.textContent='Atividade carregada. Cole ou ajuste o enunciado e clique em “Preparar para IA”.'}
+function prepare(){let q=question.value.trim();if(!q){answer.textContent='Cole primeiro o enunciado da questão.';return}if(active>=0){data[active].question=q;data[active].title=title.value;save()}answer.innerHTML='<b>Questão preparada.</b><br><br>A integração segura com IA será adicionada no backend. Esta versão não expõe chaves de API no navegador.'}
+function reviewed(){if(active<0)return;data[active].reviewed=true;save();answer.textContent='Atividade marcada como revisada.'}
+function escapeHtml(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}render();
+</script>
+</body></html>
